@@ -19,10 +19,15 @@ button.admin-btn { background-color: #4b5563; padding: 10px; font-size: 14px; }
 button.admin-btn:hover { background-color: #374151; }
 button.download-btn { background-color: #059669; margin-top: 15px; }
 button.download-btn:hover { background-color: #047857; }
+button.danger-btn { background-color: #dc2626; margin-top: 10px; padding: 10px; font-size: 14px;}
+button.danger-btn:hover { background-color: #b91c1c; }
 .timer-box { text-align: center; font-size: 15px; font-weight: 600; padding: 10px; border-radius: 6px; margin-top: 10px; background-color: #e5e7eb; color: #374151; }
 .timer-active { background-color: #fef3c7; color: #d97706; }
 .timer-expired { background-color: #fee2e2; color: #dc2626; }
 .footer-text { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 30px; }
+.log-list { max-height: 150px; overflow-y: auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; font-size: 14px; margin-top: 10px; }
+.log-item { padding: 4px 0; border-bottom: 1px dashed #f3f4f6; }
+.log-item:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
@@ -60,86 +65,38 @@ button.download-btn:hover { background-color: #047857; }
 </div>
 
 <div class="panel" style="background-color: #fff;">
-<div class="panel-title">End of Class Data</div>
+<div class="panel-title">Live Log & End of Class Data</div>
+<div class="log-list" id="log-display">No students checked in yet.</div>
 <button class="download-btn" onclick="exportToCSV()">📥 Download Attendance Log (.CSV)</button>
+<button class="danger-btn" onclick="clearAllData()">⚠️ Clear All Saved Data</button>
 </div>
 <div class="footer-text">Secure Local Device Storage Active</div>
 </div>
 
 <script>
 const classRosters = {
-  "Boys Band": [
-    "Jase Alexander", "Rolando Arias", "Hudson Bailey", "Stetson Bailey", "Aiden Beitzel",
-    "James Boyce", "Jackson Bruner", "Fisher Butler", "Jace Campbell", "John Estes",
-    "Luis Flores", "Easton Howard", "Callum Kopas", "Ryan Mangrem", "Thurmond Metters Jr",
-    "Wyatt Millican", "Kaul Pitzer", "Brandon Smith", "Valjean (Van) Smith", "Bryson Steele",
-    "Cash Van Meter", "Eliot Werntz", "Myles Yarbrough"
-  ],
-  "Girls Band": [
-    "Carlee Adkins", "Elise Almaraz", "Noelle Ashlock", "Georgia Dillard-Rowland", "Lydia Drachenberg",
-    "Alyssa DuBose", "Reese Earles", "Summer Fehr", "Lila Gates", "Kenzie Gray",
-    "Khloe Jordan", "Alaina Lee", "Lou Moore", "Emberly Parrish", "Madelyn Rich",
-    "Paislee Richardson", "Reele Roberts", "Carra Lee Rodriguez", "Addyson Short", "Scarlett Starkey",
-    "Anna Waggoner", "Emeri Wall", "Harper White"
-  ],
-  "Earth Science": [
-    "Jase Alexander", "Elise Almaraz", "Aiden Beitzel", "James Boyce", "Jackson Bruner",
-    "Fisher Butler", "Georgia Dillard-Rowland", "Alyssa DuBose", "Reese Earles", "John Estes",
-    "Easton Howard", "Ryan Mangrem", "Thurmond Metters Jr", "Wyatt Millican", "Emberly Parrish",
-    "Kaul Pitzer", "Brandon Smith", "Valjean (Van) Smith", "Bryson Steele", "Emeri Wall",
-    "Eliot Werntz", "Harper White", "Myles Yarbrough"
-  ],
-  "Intermediate Band": [
-    "Ashton Ashlock", "Hannah Biebighauser", "Nannette Connelly", "Sophia Cordova", "Luke Deshler",
-    "Eames Driskell", "Isaac DuBose", "Holly Gage", "Mary Grace Garcia", "Lucas McFarlen",
-    "Jay Rodriguez", "Natalie Sar", "Jaxston Shook", "Lorelei Thompson", "Elijah West"
-  ],
-  "7th Grade Boys Tech": [
-    "Macoy Armstrong", "Joshua Bogard", "Hunter Cadle", "Charles Carr", "Noah Cavazos",
-    "Jadon Choate", "Jace Denman", "Khang Dinh", "Kendrick Drennan", "Eames Driskell",
-    "Liam Garza", "Cooper Gorman", "Jack Hendley", "Zachary Ice", "Oakley Mitchell",
-    "Jaxston Shook", "Ryker Stockton", "Lucas Thyne", "Daniel Udayakumar", "Elijah West",
-    "Barret Wilson"
-  ],
-  "Advanced Band": [
-    "Macy Ashby", "Levi Biebighauser", "Jonathan Connelly", "Caylee Cox", "Judah Donovan",
-    "Noelle Gage", "Chisum Gardenhire", "Caleb Gililland", "Emily Gililland", "Timothy Head",
-    "Kress Johnson", "Jimmy Schlueter", "David Stevens"
-  ],
-  "10th Grade Girls Tech": [
-    "Sam Alexander", "Isla Almaraz", "Madison Brown", "Caylee Cox", "Isabelle DuBose",
-    "Anna Eagle", "Alia Encarnacion", "Diana Garcia", "Laney Jackson", "Annabelle Jessup",
-    "Claire Knutson", "Avvie Kropp", "Berkley Lange", "Kaelyn McCay", "Adison McMahon",
-    "Hayes Myers", "Ella Rich", "Kaylee Thomas", "Emmeline Walker", "Heidi Weldon"
-  ],
-  "8th Grade Class Meeting": [
-    "David Akers", "Charleston Armstrong", "Ashton Ashlock", "Piper L. Bailey", "Samuel Bailey",
-    "Quinn Bartee", "Everett Blanks", "Peyton Bunch", "Baker Butler", "Cole Campbell",
-    "Aubrey Carr", "Jude Carroll", "Calvin Cobb", "Michael Davis", "Luke Deshler",
-    "Jonathan Dodd", "Isaac DuBose", "Everett Eggleston", "Holly Gage", "Ruby Gillingham",
-    "Hazel Goetz", "Eli Howard", "Emmy Howard", "Adalyn Hurt", "Cheyenne Jergins",
-    "Elijah Kirk", "Briley Kozora", "Mitchell Lee", "Gabrielle Lyon", "Lucas McFarlen",
-    "Hattie McSherry", "Nicholas Miles", "Isabella Parker", "Aven Roberson", "Jay Rodriguez",
-    "Natalie Sar", "Alli Taillet", "Cora Team", "Lorelei Thompson"
-  ],
-  "Jazz Band": [
-    "Macy Ashby", "Jonathan Connelly", "Caylee Cox", "Judah Donovan", "Daniel Drachenberg",
-    "Noelle Gage", "Caleb Gililland", "Emily Gililland", "Timothy Head", "Kress Johnson",
-    "Lucas McFarlen", "Annabel Steffek", "David Stevens"
-  ],
-  "Yearbook": [
-    "Macy Ashby", "Jonathan Connelly", "Caylee Cox", "Judah Donovan", "Caleb Gililland",
-    "Talia Hutchins", "William Rolison", "Theodore Scott", "Adaiah Shimwe", "Emmie Walker"
-  ]
+  "Boys Band": ["Jase Alexander", "Rolando Arias", "Hudson Bailey", "Stetson Bailey", "Aiden Beitzel", "James Boyce", "Jackson Bruner", "Fisher Butler", "Jace Campbell", "John Estes", "Luis Flores", "Easton Howard", "Callum Kopas", "Ryan Mangrem", "Thurmond Metters Jr", "Wyatt Millican", "Kaul Pitzer", "Brandon Smith", "Valjean (Van) Smith", "Bryson Steele", "Cash Van Meter", "Eliot Werntz", "Myles Yarbrough"],
+  "Girls Band": ["Carlee Adkins", "Elise Almaraz", "Noelle Ashlock", "Georgia Dillard-Rowland", "Lydia Drachenberg", "Alyssa DuBose", "Reese Earles", "Summer Fehr", "Lila Gates", "Kenzie Gray", "Khloe Jordan", "Alaina Lee", "Lou Moore", "Emberly Parrish", "Madelyn Rich", "Paislee Richardson", "Reele Roberts", "Carra Lee Rodriguez", "Addyson Short", "Scarlett Starkey", "Anna Waggoner", "Emeri Wall", "Harper White"],
+  "Earth Science": ["Jase Alexander", "Elise Almaraz", "Aiden Beitzel", "James Boyce", "Jackson Bruner", "Fisher Butler", "Georgia Dillard-Rowland", "Alyssa DuBose", "Reese Earles", "John Estes", "Easton Howard", "Ryan Mangrem", "Thurmond Metters Jr", "Wyatt Millican", "Emberly Parrish", "Kaul Pitzer", "Brandon Smith", "Valjean (Van) Smith", "Bryson Steele", "Emeri Wall", "Eliot Werntz", "Harper White", "Myles Yarbrough"],
+  "Intermediate Band": ["Ashton Ashlock", "Hannah Biebighauser", "Nannette Connelly", "Sophia Cordova", "Luke Deshler", "Eames Driskell", "Isaac DuBose", "Holly Gage", "Mary Grace Garcia", "Lucas McFarlen", "Jay Rodriguez", "Natalie Sar", "Jaxston Shook", "Lorelei Thompson", "Elijah West"],
+  "7th Grade Boys Tech": ["Macoy Armstrong", "Joshua Bogard", "Hunter Cadle", "Charles Carr", "Noah Cavazos", "Jadon Choate", "Jace Denman", "Khang Dinh", "Kendrick Drennan", "Eames Driskell", "Liam Garza", "Cooper Gorman", "Jack Hendley", "Zachary Ice", "Oakley Mitchell", "Jaxston Shook", "Ryker Stockton", "Lucas Thyne", "Daniel Udayakumar", "Elijah West", "Barret Wilson"],
+  "Advanced Band": ["Macy Ashby", "Levi Biebighauser", "Jonathan Connelly", "Caylee Cox", "Judah Donovan", "Noelle Gage", "Chisum Gardenhire", "Caleb Gililland", "Emily Gililland", "Timothy Head", "Kress Johnson", "Jimmy Schlueter", "David Stevens"],
+  "10th Grade Girls Tech": ["Sam Alexander", "Isla Almaraz", "Madison Brown", "Caylee Cox", "Isabelle DuBose", "Anna Eagle", "Alia Encarnacion", "Diana Garcia", "Laney Jackson", "Annabelle Jessup", "Claire Knutson", "Avvie Kropp", "Berkley Lange", "Kaelyn McCay", "Adison McMahon", "Hayes Myers", "Ella Rich", "Kaylee Thomas", "Emmeline Walker", "Heidi Weldon"],
+  "8th Grade Class Meeting": ["David Akers", "Charleston Armstrong", "Ashton Ashlock", "Piper L. Bailey", "Samuel Bailey", "Quinn Bartee", "Everett Blanks", "Peyton Bunch", "Baker Butler", "Cole Campbell", "Aubrey Carr", "Jude Carroll", "Calvin Cobb", "Michael Davis", "Luke Deshler", "Jonathan Dodd", "Isaac DuBose", "Everett Eggleston", "Holly Gage", "Ruby Gillingham", "Hazel Goetz", "Eli Howard", "Emmy Howard", "Adalyn Hurt", "Cheyenne Jergins", "Elijah Kirk", "Briley Kozora", "Mitchell Lee", "Gabrielle Lyon", "Lucas McFarlen", "Hattie McSherry", "Nicholas Miles", "Isabella Parker", "Aven Roberson", "Jay Rodriguez", "Natalie Sar", "Alli Taillet", "Cora Team", "Lorelei Thompson"],
+  "Jazz Band": ["Macy Ashby", "Jonathan Connelly", "Caylee Cox", "Judah Donovan", "Daniel Drachenberg", "Noelle Gage", "Caleb Gililland", "Emily Gililland", "Timothy Head", "Kress Johnson", "Lucas McFarlen", "Annabel Steffek", "David Stevens"],
+  "Yearbook": ["Macy Ashby", "Jonathan Connelly", "Caylee Cox", "Judah Donovan", "Caleb Gililland", "Talia Hutchins", "William Rolison", "Theodore Scott", "Adaiah Shimwe", "Emmie Walker"]
 };
 
-let checkedInStudents = []; 
-let classStartTime = null;
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+// Teacher Pin Protection configuration
+const TEACHER_PIN = "1234"; 
+
+let checkedInStudents = JSON.parse(localStorage.getItem('attendance_log')) || []; 
 let clockInterval = null;
+let timerExpired = true; // Demands clock start by default
 
 window.onload = function() {
   populateDropdown();
+  updateLiveLogUI();
 };
 
 function populateDropdown() {
@@ -147,54 +104,46 @@ function populateDropdown() {
   const selectedClass = classSelect.value;
   const currentRoster = classRosters[selectedClass] || [];
   
-  const select = document.getElementById('student-select');
-  select.innerHTML = '<option value="" disabled selected>Choose your name from the roster...</option>';
+  const studentSelect = document.getElementById('student-select');
+  studentSelect.innerHTML = '<option value="" disabled selected>Choose your name from the roster...</option>';
   
   currentRoster.forEach(student => {
-    if (!checkedInStudents.some(record => record.name === student && record.className === selectedClass)) {
-      let opt = document.createElement('option');
-      opt.value = student;
-      opt.textContent = student;
-      select.appendChild(opt);
-    }
+    const option = document.createElement('option');
+    option.value = student;
+    option.textContent = student;
+    studentSelect.appendChild(option);
   });
 }
 
 function startAttendanceWindow() {
-  classStartTime = new Date().getTime();
+  const pinInput = prompt("Enter Teacher PIN to unlock the attendance clock:");
+  if (pinInput !== TEACHER_PIN) {
+    alert("Incorrect PIN. Action canceled.");
+    return;
+  }
+
   if (clockInterval) clearInterval(clockInterval);
-  clockInterval = setInterval(updateCountdown, 1000);
+  timerExpired = false;
+  
+  let timeLeft = 300; 
   const display = document.getElementById('timer-display');
   display.className = "timer-box timer-active";
-  display.textContent = "⏱️ On-Time Window Closing In: 5m 00s";
-}
-
-function updateCountdown() {
-  const now = new Date().getTime();
-  const elapsed = now - classStartTime;
-  const remaining = FIVE_MINUTES_MS - elapsed;
-  const display = document.getElementById('timer-display');
-  if (remaining <= 0) {
-    clearInterval(clockInterval);
-    display.className = "timer-box timer-expired";
-    display.textContent = "⏰ 5 Minutes Passed: Remaining check-ins marked LATE";
-  } else {
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-    display.textContent = `⏱️ On-Time Window Closing In: ${minutes}m ${seconds}s`;
-  }
+  
+  clockInterval = setInterval(() => {
+    let minutes = Math.floor(timeLeft / 60);
+    let seconds = timeLeft % 60;
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+    
+    display.textContent = `Time Remaining: ${minutes}:${seconds}`;
+    
+    if (--timeLeft < 0) {
+      clearInterval(clockInterval);
+      timerExpired = true;
+      display.textContent = "Clock Status: Expired (Window Closed)";
+      display.className = "timer-box timer-expired";
+    }
+  }, 1000);
 }
 
 function processCheckIn() {
-  const classSelect = document.getElementById('class-select');
-  const selectedClass = classSelect.value;
-  
-  const select = document.getElementById('student-select');
-  const selectedStudent = select.value;
-  
-  if (!selectedStudent) {
-    alert("Please highlight your name from the dropdown list before checking in.");
-    return;
-  }
-  const now = new Date();
-  let status = "Present";
+  if (timerExpired) {
